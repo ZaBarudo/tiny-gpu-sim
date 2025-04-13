@@ -197,7 +197,7 @@ def main():
     threads, data_values = get_user_input()
     input_file = sys.argv[1]
     asm_path = 'test.asm'
-    chisel_dir = os.path.join(os.path.dirname(__file__), '..', 'tiny-gpu-chisel')
+    chisel_dir = os.path.join(os.path.dirname(__file__), '..', 'tiny-gpu-chisel-sim')
     
     try:
         # Process LLVM file

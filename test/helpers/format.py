@@ -124,7 +124,6 @@ def format_cycle(dut, cycle_id: int, thread_id: Optional[int] = None):
                     logger.debug(f"\n+-------- Thread {idx} --------+")
 
                     logger.debug("PC:", int(str(core.core_instance.current_pc.value), 2))
-                    logger.debug("NZP:", int(str(core.core_instance.decoded_nzp.value)))
                     logger.debug("Instruction:", format_instruction(instruction))
                     logger.debug("Core State:", format_core_state(str(core.core_instance.core_state.value)))
                     logger.debug("Fetcher State:", format_fetcher_state(str(core.core_instance.fetcher_state.value)))
