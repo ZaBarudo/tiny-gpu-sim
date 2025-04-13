@@ -1,5 +1,7 @@
 */**/__pycache__
 build/
+env/
+out/
 test/logs/*
 !.gitkeep
 gds/**/*.gltf
