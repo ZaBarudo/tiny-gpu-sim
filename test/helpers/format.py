@@ -16,9 +16,9 @@ def format_instruction(instruction: str) -> str:
     rd = format_register(int(instruction[4:8], 2))
     rs = format_register(int(instruction[8:12], 2))
     rt = format_register(int(instruction[12:16], 2))
-    n = "N" if instruction[4] == 1 else ""
-    z = "Z" if instruction[5] == 1 else ""
-    p = "P" if instruction[6] == 1 else ""
+    n = "N" if instruction[4] == "1" else ""
+    z = "Z" if instruction[5] == "1" else ""
+    p = "P" if instruction[6] == "1" else ""
     imm = f"#{int(instruction[8:16], 2)}"
 
     if opcode == "0000":
@@ -124,6 +124,7 @@ def format_cycle(dut, cycle_id: int, thread_id: Optional[int] = None):
                     logger.debug(f"\n+-------- Thread {idx} --------+")
 
                     logger.debug("PC:", int(str(core.core_instance.current_pc.value), 2))
+                    logger.debug("NZP:", int(str(core.core_instance.decoded_nzp.value)))
                     logger.debug("Instruction:", format_instruction(instruction))
                     logger.debug("Core State:", format_core_state(str(core.core_instance.core_state.value)))
                     logger.debug("Fetcher State:", format_fetcher_state(str(core.core_instance.fetcher_state.value)))
