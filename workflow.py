@@ -85,10 +85,16 @@ def run_tinygpu(input_file):
 
     # Step 4: Compile optimized IR to assembly
     try:
-        subprocess.run(
-            ["llc", "-O1", "--march=tinygpu", mem2reg_ir, "-o", clang_output],
-            check=True
-        )
+        if "loop" in input_file or "mat_add" in input_file:
+            subprocess.run(
+                ["llc", "-O1", "--march=tinygpu", mem2reg_ir, "-o", clang_output],
+                check=True
+            )
+        else:
+            subprocess.run(
+                ["llc", "-O0", "--march=tinygpu", mem2reg_ir, "-o", clang_output],
+                check=True
+            )
     except subprocess.CalledProcessError:
         print("Error: llc failed to generate assembly.")
         return 1
@@ -131,7 +137,6 @@ def main():
     input_file = input("Enter the file path to run (e.g., ./testing-example/arithmetic/add.cl): ").strip()
     run_tinygpu(input_file)
     run_opencl(input_file)
-    # TODO: parse the output log and parse the memory address if they match in input_file:
     compare_number_files('tinygpu_output.txt', 'nvidia_output.txt')
 
 
