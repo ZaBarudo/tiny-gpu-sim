@@ -22,10 +22,70 @@ def get_user_input():
         print(f"Invalid input: {e}")
         sys.exit(1)
 
+
+def get_register_values():
+    """
+    Get register constant values from user input for registers R8, R9, and R10.
+    These values will be added to the assembly source code.
+    """
+    try:
+        reg8 = int(input("Enter value for register R8: "))
+        reg9 = int(input("Enter value for register R9: "))
+        reg10 = int(input("Enter value for register R10: "))
+        return {'R8': reg8, 'R9': reg9, 'R10': reg10}
+    except ValueError as e:
+        print(f"Invalid register input: {e}")
+        sys.exit(1)
+
+
+def add_register_constants(asm_code, register_values):
+    """
+    Adds register constant definitions to the source assembly code.
+    Each constant is added as a new line in the format:
+       CONST <Register>, #[value]
+    The constants are prepended to the existing asm code.
+    """
+    constants_lines = []
+    for reg, val in register_values.items():
+        constants_lines.append(f"CONST {reg}, #{val}")
+    # Prepend the constant definitions and a blank line to separate from original code.
+    modified_code = '\n'.join(constants_lines) + '\n\n' + asm_code
+    return modified_code
+
+
+def update_const_values(asm_code):
+    """
+    Update constant definitions in the assembly code.
+    Replace any occurrence of "CONST RX, #4" with "CONST RX, #1"
+    where RX is any register (e.g., R8, R9, etc.).
+    """
+    # This regex captures the register portion and ensures that '#4'
+    # is replaced with '#1', keeping the rest of the line unchanged.
+    regex = re.compile(r'(CONST\s+R\d+,\s*#)4\b', flags=re.IGNORECASE)
+    updated_code = regex.sub(r'\g<1>1', asm_code)
+    return updated_code
+
+
+def remove_prefix_from_asm_output(asm_output):
+    """
+    Removes unwanted prefix patterns (e.g., [110]) from each line of assembler output.
+    """
+    cleaned_lines = []
+    for line in asm_output.strip().splitlines():
+        # Remove a prefix like "[110]" with an optional following space
+        cleaned_line = re.sub(r'^\[\d+\]\s*', '', line)
+        cleaned_lines.append(cleaned_line)
+    return cleaned_lines
+
+
 def generate_testbench(assembler_output, output_file, threads, data_values):
     """Generate a Cocotb testbench from assembler output with provided configuration."""
-    # Convert binary strings to integers
-    program = [f"0b{line.replace(' ', '')}" for line in assembler_output.strip().split('\n')]
+    # Remove unwanted prefixes from the assembler output lines
+    cleaned_lines = remove_prefix_from_asm_output(assembler_output)
+    
+    # Convert the cleaned binary strings to integers by removing spaces and
+    # prefixing with '0b' for binary literal representation.
+    program = [f"0b{line.replace(' ', '')}" for line in cleaned_lines]
     
     # Format data values for the template
     formatted_data = ', '.join(str(v) for v in data_values)
@@ -93,6 +153,7 @@ async def test_generated(dut):
     
     print(f"Generated testbench saved to {output_file}")
 
+
 class LLVMProcessor:
     @staticmethod
     def clean_llvm_asm(code):
@@ -152,6 +213,7 @@ class LLVMProcessor:
         
         return '\n'.join(output_lines)
 
+
 class Assembler:
     @staticmethod
     def run_assembler(asm_path, chisel_dir):
@@ -188,51 +250,55 @@ class Assembler:
             # Always return to original directory
             os.chdir(original_dir)
 
+
 def main():
     if len(sys.argv) != 2:
         print("Usage: python clean_llvm.py <input_file>")
         sys.exit(1)
     
-    # Get user configuration first
+    # Get user configuration first.
     threads, data_values = get_user_input()
     input_file = sys.argv[1]
     asm_path = 'test.asm'
     chisel_dir = os.path.join(os.path.dirname(__file__), '..', 'tiny-gpu-chisel-sim')
     
     try:
-        # Process LLVM file
+        # Process LLVM file.
         with open(input_file, 'r') as f:
             llvm_code = f.read()
         
-        # Clean and organize assembly
+        # Clean and organize assembly.
         cleaned_lines = LLVMProcessor.clean_llvm_asm(llvm_code)
         functions = LLVMProcessor.organize_functions(cleaned_lines)
         cleaned_code = LLVMProcessor.reconstruct_assembly(functions)
         
-        # Save cleaned assembly
+        # Get register constant values from user and add to the assembly code.
+        register_values = get_register_values()
+        cleaned_code = add_register_constants(cleaned_code, register_values)
+        
+        # Update any constant definitions of the form "CONST RX, #4" to "CONST RX, #1"
+        cleaned_code = update_const_values(cleaned_code)
+        
+        # Save modified assembly
         with open(asm_path, 'w') as f:
             f.write(cleaned_code)
         
-        # Run assembler
+        # Run assembler.
         try:
             result = Assembler.run_assembler(asm_path, chisel_dir)
             
-            # Print results
-            print("Cleaned assembly saved to:", os.path.abspath(asm_path))
+            # Print results.
+            print("Modified assembly saved to:", os.path.abspath(asm_path))
             print("\nAssembler output:")
             print(result.stdout)
 
-            # Generate output filename
+            # Generate output filename.
             base_name = os.path.splitext(os.path.basename(asm_path))[0]
             output_file = f"{base_name}_test.py"
             save_path = os.path.join(os.getcwd(), 'test', output_file)
 
-            # Generate testbench with user configuration
+            # Generate testbench with user configuration.
             generate_testbench(result.stdout, save_path, threads, data_values)
-
-
-
-            
         except CalledProcessError as e:
             print("\nAssembler failed with the following output:")
             print("="*50)
