@@ -75,6 +75,10 @@ def run_tinygpu(input_file):
             ["opt", "-passes=mem2reg", cleaned_ir, "-S", "-o", mem2reg_ir],
             check=True
         )
+        subprocess.run(
+            ["opt", "-passes=break-crit-edges", mem2reg_ir, "-S", "-o", mem2reg_ir],
+            check=True
+        )
     except subprocess.CalledProcessError:
         print("Error: opt mem2reg pass failed.")
         return 1
@@ -82,7 +86,7 @@ def run_tinygpu(input_file):
     # Step 4: Compile optimized IR to assembly
     try:
         subprocess.run(
-            ["llc", "--march=tinygpu", mem2reg_ir, "-o", clang_output],
+            ["llc", "-O1", "--march=tinygpu", mem2reg_ir, "-o", clang_output],
             check=True
         )
     except subprocess.CalledProcessError:

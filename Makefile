@@ -24,7 +24,7 @@ compile_%:
 	./sv2v -w build/$*.v src/$*.sv
 
 clean:
-	rm arr_arr_arr_opencl arr_opencl imm_opencl nvidia_output.txt tinygpu_output.txt test.asm results.xml
+	rm arr_arr_arr_opencl arr_opencl imm_opencl nvidia_output.txt tinygpu_output.txt test.asm results.xml *.ll *.s *.asm ./test/logs/*.txt
 
 # TODO: Get gtkwave visualizaiton
 

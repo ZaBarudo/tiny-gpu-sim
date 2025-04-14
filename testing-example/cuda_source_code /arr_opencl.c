@@ -9,6 +9,24 @@
 #define MAX_SOURCE_SIZE (0x100000)
 #define NUM_WORK_ITEMS 8  // Fixed to 8 threads
 
+char* get_add_part(const char* input) {
+    if (input == nullptr) {
+        return nullptr;
+    }
+
+    const char* last_slash = strrchr(input, '/');
+    const char* start = (last_slash != nullptr) ? (last_slash + 1) : input;
+
+    size_t length = strlen(start);
+    char* result = static_cast<char*>(malloc(length + 1)); // +1 for null terminator
+
+    if (result != nullptr) {
+        strcpy(result, start);
+    }
+
+    return result;
+}
+
 // Function to read the kernel file
 char* read_kernel_file(const char* filename) {
     FILE *fp;
@@ -92,8 +110,17 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
+    size_t len = strlen(argv[1]);
+    size_t new_len = len - 3;
+    char* rez = (char*)malloc(new_len + 1); // +1 for null terminator
+    if (rez == NULL) {
+        return NULL; // Memory allocation failed
+    }
+
+    strncpy(rez, argv[1], new_len);
+    rez[new_len] = '\0'; 
     // Create the OpenCL kernel
-    cl_kernel kernel = clCreateKernel(program, "for_loop", &ret);
+    cl_kernel kernel = clCreateKernel(program, get_add_part(rez), &ret);
     if (ret != CL_SUCCESS) {
         fprintf(stderr, "Failed to create kernel (error: %d). Make sure the kernel name is 'for_loop'\n", ret);
         exit(1);
