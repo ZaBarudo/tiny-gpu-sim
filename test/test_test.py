@@ -12,7 +12,7 @@ async def test_generated(dut):
     """Test generated from assembler output"""
     # Configuration from main script
     threads = 8
-    data = [1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    data = [47, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 2, 4, 6, 8, 10, 12, 14, 16]
 
     # Initialize memories
     program_memory = Memory(dut=dut, addr_bits=8, data_bits=16, channels=1, name="program")
@@ -20,7 +20,7 @@ async def test_generated(dut):
 
     # Program instructions
     program = [
-        0b1001100000000000, 0b1001100100001000, 0b1001101000010000, 0b0101000011011110, 0b0011000000001111, 0b1001000100000001, 0b0101000000000001, 0b0011000110000000, 0b0111000100010000, 0b0011001010010000, 0b0111001000100000, 0b0011000100100001, 0b0011000010100000, 0b1000000000000001, 0b1111000000000000
+        0b1001100000000000, 0b1001100100001000, 0b1001101000010000, 0b0101000011011110, 0b0011000000001111, 0b1001000100000001, 0b0101000000000001, 0b0011000010000000, 0b1001000100101101, 0b1000000000000001, 0b1111000000000000
     ]
 
     # Run setup
@@ -50,5 +50,8 @@ async def test_generated(dut):
 
     print(f"\nCompleted in {cycles} cycles")
     data_memory.display(24)
+    with open("tinygpu_output.txt", "w") as file:
+        for item in data_memory.memory[0:24]:
+            file.write(str(item)+" ")
 
 

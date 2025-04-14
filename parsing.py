@@ -5,18 +5,22 @@ from pathlib import Path
 from subprocess import run, CalledProcessError
 from textwrap import dedent
 
+IMM_FLAG = False
+IMM_VALUE = 0
 
 def get_user_input():
+    global IMM_VALUE
     """Get configuration from user in the main script."""
     try:
-        threads = int(input("Enter number of threads (default=8): ") or "8")
-        
-        print("Enter up to 24 data values (press Enter after each, blank for 0):")
+        # threads = int(input("Enter number of threads (default=8): ") or "8")
+        threads = 8
+
+        # print("Enter up to 24 data values (press Enter after each, blank for 0):")
         data = []
-        for i in range(24):
-            val = input(f"Data {i}: ") or "0"
-            data.append(int(val))
-            
+        with open('input.txt', 'r') as f:
+            data = list(map(int, f.read().strip().split()))
+        IMM_VALUE = data[8]
+        print("the data",data)
         return threads, data
     except ValueError as e:
         print(f"Invalid input: {e}")
@@ -24,14 +28,21 @@ def get_user_input():
 
 
 def get_register_values():
+    global IMM_VALUE
+    global IMM_FLAG
     """
     Get register constant values from user input for registers R8, R9, and R10.
     These values will be added to the assembly source code.
     """
     try:
-        reg8 = int(input("Enter value for register R8: "))
-        reg9 = int(input("Enter value for register R9: "))
-        reg10 = int(input("Enter value for register R10: "))
+        # reg8 = int(input("Enter value for register R8: "))
+        # reg9 = int(input("Enter value for register R9: "))
+        # reg10 = int(input("Enter value for register R10: "))
+        reg8 = 0
+        reg9 = 8
+        reg10 = 16
+        if IMM_FLAG:
+            reg9 = IMM_VALUE
         return {'R8': reg8, 'R9': reg9, 'R10': reg10}
     except ValueError as e:
         print(f"Invalid register input: {e}")
@@ -143,6 +154,9 @@ async def test_generated(dut):
     
     print(f"\\nCompleted in {{cycles}} cycles")
     data_memory.display(24)
+    with open("tinygpu_output.txt", "w") as file:
+        for item in data_memory.memory[0:24]:
+            file.write(str(item)+" ")
     
    
 '''
@@ -251,14 +265,13 @@ class Assembler:
             os.chdir(original_dir)
 
 
+
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python clean_llvm.py <input_file>")
-        sys.exit(1)
-    
+    global IMM_FLAG
     # Get user configuration first.
     threads, data_values = get_user_input()
     input_file = sys.argv[1]
+    IMM_FLAG = True if len(sys.argv) > 2 else False
     asm_path = 'test.asm'
     chisel_dir = os.path.join(os.path.dirname(__file__), '..', 'tiny-gpu-chisel-sim')
     
