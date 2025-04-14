@@ -64,6 +64,7 @@ def add_register_constants(asm_code, register_values):
     return modified_code
 
 
+# this is a hotfix to manually change the integer byte size. change this later
 def update_const_values(asm_code):
     """
     Update constant definitions in the assembly code.

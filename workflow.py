@@ -37,27 +37,59 @@ def run_opencl(input_file):
         return 1
 
 def run_tinygpu(input_file):
-    # Check if the file exists
     if not os.path.isfile(input_file):
         print(f"Error: File '{input_file}' not found.")
         return 1
 
-    # Extract base filename
     base = os.path.basename(input_file)
     name = os.path.splitext(base)[0]
+    llvm_ir = f"{name}.ll"
+    cleaned_ir = f"{name}_clean.ll"
+    mem2reg_ir = f"{name}_mem2reg.ll"
     clang_output = f"{name}.S"
 
-    # Step 2: Generate assembly with clang
+    # Step 1: Generate LLVM IR with -O0
     try:
         subprocess.run(
-            ["clang", "-S", "--target=tinygpu", input_file, "-o", clang_output],
+            ["clang", "-O0", "-S", "-emit-llvm", "--target=tinygpu", input_file, "-o", llvm_ir],
             check=True
         )
     except subprocess.CalledProcessError:
-        print("Error: clang command failed.")
+        print("Error: clang failed to generate LLVM IR.")
         return 1
 
-    # Step 3: Convert to test.asm and parse
+    # Step 2: Remove 'optnone' attribute from IR
+    try:
+        with open(llvm_ir, "r") as infile:
+            ir_contents = infile.read()
+        ir_contents = ir_contents.replace("optnone", "")
+        with open(cleaned_ir, "w") as outfile:
+            outfile.write(ir_contents)
+    except Exception as e:
+        print(f"Error cleaning optnone: {e}")
+        return 1
+
+    # Step 3: Apply mem2reg optimization
+    try:
+        subprocess.run(
+            ["opt", "-passes=mem2reg", cleaned_ir, "-S", "-o", mem2reg_ir],
+            check=True
+        )
+    except subprocess.CalledProcessError:
+        print("Error: opt mem2reg pass failed.")
+        return 1
+
+    # Step 4: Compile optimized IR to assembly
+    try:
+        subprocess.run(
+            ["llc", "--march=tinygpu", mem2reg_ir, "-o", clang_output],
+            check=True
+        )
+    except subprocess.CalledProcessError:
+        print("Error: llc failed to generate assembly.")
+        return 1
+
+    # Step 5: Rename to test.asm
     try:
         os.rename(clang_output, "test.asm")
     except OSError as e:
@@ -68,6 +100,7 @@ def run_tinygpu(input_file):
         print("Error: test.asm not found after renaming.")
         return 1
 
+    # Step 6: Run parsing
     try:
         if "imm" in input_file:
             subprocess.run(["python3", "parsing.py", "test.asm", ""], check=True)
@@ -77,16 +110,16 @@ def run_tinygpu(input_file):
         print("Error: Python parsing.py failed.")
         return 1
 
-    # Step 4: Run make command
+    # Step 7: Run test
     try:
         subprocess.run(["make", "test_test"], check=True)
     except subprocess.CalledProcessError:
         print("Error: Make command failed for target test_test.")
         return 1
 
-
     print("Workflow completed successfully.")
     return 0
+
 
 
 def main():

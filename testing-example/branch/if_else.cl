@@ -1,4 +1,8 @@
 __kernel void if_else(__global int* a, __global int* b, __global int* result) {
     int i = get_global_id(0);
-    result[i] = (a[i] > 0) ? 1 : 0;
+    if (a[i] > 10) {
+        result[i] = 1;
+    } else {
+        result[i] = 2;
+    }
 }
