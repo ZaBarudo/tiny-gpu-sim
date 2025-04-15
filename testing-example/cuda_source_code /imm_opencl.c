@@ -149,11 +149,7 @@ int main(int argc, char** argv) {
     // Read back the results
     ret = clEnqueueReadBuffer(command_queue, result_mem_obj, CL_TRUE, 0, NUM_WORK_ITEMS * sizeof(int), result, 0, NULL, NULL);
 
-    // Display results
-    printf("Results from 8 work-items (adding %d to each element):\n", imm);
-    for (int i = 0; i < NUM_WORK_ITEMS; i++) {
-        printf("Work-item %d: %d + %d = %d\n", i, a[i], imm, result[i]);
-    }
+    
 
     std::ofstream outFile("nvidia_output.txt");
 

@@ -92,7 +92,7 @@ def run_tinygpu(input_file):
             )
         else:
             subprocess.run(
-                ["llc", "-O0", "--march=tinygpu", mem2reg_ir, "-o", clang_output],
+                ["llc", "--march=tinygpu", mem2reg_ir, "-o", clang_output],
                 check=True
             )
     except subprocess.CalledProcessError:

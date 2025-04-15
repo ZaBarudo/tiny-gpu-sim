@@ -9,3 +9,7 @@ gds/**/*.gltf
 .DS_Store
 results.xml
 test/test_test.py
+*.ll
+*.asm
+*_output.txt
+*_opencl

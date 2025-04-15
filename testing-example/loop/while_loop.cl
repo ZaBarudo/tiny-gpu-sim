@@ -4,6 +4,5 @@ __kernel void while_loop(__global int* result) {
     while(i<10) {
         result[get_global_id(0)] = i;
         i = i+1;
-    
     }
 }

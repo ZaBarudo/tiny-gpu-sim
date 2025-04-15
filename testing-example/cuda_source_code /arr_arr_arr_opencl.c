@@ -137,6 +137,7 @@ int main(int argc, char** argv) {
     strncpy(rez, argv[1], new_len);
     rez[new_len] = '\0'; 
     // Create the OpenCL kernel
+    std::cout<<"Kernel name: "<<get_add_part(rez)<<std::endl;   
     cl_kernel kernel = clCreateKernel(program, get_add_part(rez), &ret);
 
     // Set the arguments of the kernel
