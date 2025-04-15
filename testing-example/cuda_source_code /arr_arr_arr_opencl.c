@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
     }
 
     // Create the OpenCL kernel
-    cl_kernel kernel = clCreateKernel(program, "if_kernel", &ret);
+    cl_kernel kernel = clCreateKernel(program, "mat_add", &ret);
 
     // Set the arguments of the kernel
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&a_mem_obj);

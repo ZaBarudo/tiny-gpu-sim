@@ -1,4 +1,4 @@
-__kernel void vector_add(__global float4* a, __global float4* b, __global float4* c) {
+__kernel void vector_add(__global int* a, __global int* b, __global int* c) {
     int i = get_global_id(0);
     c[i] = a[i] + b[i];
 }
