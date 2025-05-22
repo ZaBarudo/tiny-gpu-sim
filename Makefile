@@ -30,3 +30,9 @@ clean:
 
 show_%: %.vcd %.gtkw
 	gtkwave $^
+
+func_%:
+	clang -S --target=tinygpu -emit-llvm -O0 -o ./testing-example/function_call/$*.ll ./testing-example/function_call/$*.c
+	python3 clean_files.py -f -i ./testing-example/function_call/ -o ./testing-example/function_call/
+	opt -S -passes=mem2reg ./testing-example/function_call/$*.ll -o ./testing-example/function_call/$*2.ll 
+	llc -O0 -march=tinygpu ./testing-example/function_call/$*2.ll -o ./testing-example/function_call/$*.s

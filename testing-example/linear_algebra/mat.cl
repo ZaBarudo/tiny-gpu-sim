@@ -1,4 +1,4 @@
-__kernel void mat_add(__global int* a, __global int* b, __global int* c) {
+__kernel void mat(__global int* a, __global int* b, __global int* c) {
     int gid = get_global_id(0);
     int width = 2;
     int x = gid % width;

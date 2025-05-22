@@ -50,10 +50,16 @@ def run_tinygpu(input_file):
 
     # Step 1: Generate LLVM IR with -O0
     try:
-        subprocess.run(
-            ["clang", "-O0", "-S", "-emit-llvm", "--target=tinygpu", input_file, "-o", llvm_ir],
-            check=True
-        )
+        if "mat.cl" in input_file:
+            subprocess.run(
+                ["clang", "-O1", "-S", "-emit-llvm", "--target=tinygpu", input_file, "-o", llvm_ir],
+                check=True
+            )
+        else:    
+            subprocess.run(
+                ["clang", "-O0", "-S", "-emit-llvm", "--target=tinygpu", input_file, "-o", llvm_ir],
+                check=True
+            )
     except subprocess.CalledProcessError:
         print("Error: clang failed to generate LLVM IR.")
         return 1
@@ -85,7 +91,7 @@ def run_tinygpu(input_file):
 
     # Step 4: Compile optimized IR to assembly
     try:
-        if "loop" in input_file or "mat_add" in input_file:
+        if "loop" in input_file:
             subprocess.run(
                 ["llc", "-O1", "--march=tinygpu", mem2reg_ir, "-o", clang_output],
                 check=True
